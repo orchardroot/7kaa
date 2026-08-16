@@ -28,7 +28,11 @@
 #include <OUNIT.h>
 #include <OBULLET.h>
 #include <ONATIONA.h>
+#include <OFONT.h>
+#include <OSTR.h>
+#include <vga_util.h>
 #include <OF_TURR.h>
+#include "gettext.h"
 
 //--------- Define combat constants ----------//
 
@@ -68,7 +72,7 @@ void FirmTurret::put_info(int refreshFlag)
 		return;
 
 	disp_worker_list(INFO_Y1+52, refreshFlag);
-	disp_worker_info(INFO_Y1+116, refreshFlag);
+	disp_soldier_info(INFO_Y1+116, refreshFlag);
 
 	//------ display mobilize button -------//
 
@@ -106,7 +110,7 @@ int FirmTurret::detect_info()
 
 	if( detect_worker_list() )
 	{
-		disp_worker_info(INFO_Y1+116, INFO_UPDATE);
+		disp_soldier_info(INFO_Y1+116, INFO_UPDATE);
 		return 1;
 	}
 
@@ -125,6 +129,68 @@ int FirmTurret::detect_info()
 	return 0;
 }
 //----------- End of function FirmTurret::detect_info -----------//
+
+
+//--------- Begin of function FirmTurret::disp_soldier_info ---------//
+//
+// Garrison panel: loyalty, combat and hit points of the selected
+// soldier. The generic Firm::disp_worker_info cannot be used here: it
+// prints the worker's skill name via skill_str_array[skill_id-1], and
+// plain soldiers have skill_id 0, which reads out of bounds.
+//
+void FirmTurret::disp_soldier_info(int dispY1, int refreshFlag)
+{
+	static char lastHasSelected = -1;
+
+	if( worker_count == 0 )
+		selected_worker_id = 0;
+	else if( selected_worker_id > worker_count )
+		selected_worker_id = worker_count;
+
+	char hasSelected = selected_worker_id > 0;
+
+	if( lastHasSelected != hasSelected )
+	{
+		lastHasSelected = hasSelected;
+
+		if( refreshFlag == INFO_UPDATE )
+		{
+			info.disp();		// repaint the whole interface
+			return;
+		}
+	}
+
+	if( !hasSelected )
+		return;
+
+	if( refreshFlag == INFO_REPAINT )
+		vga_util.d3_panel_up( INFO_X1, dispY1, INFO_X2, dispY1+55 );
+
+	Worker* workerPtr = worker_array + selected_worker_id - 1;
+
+	int x=INFO_X1+4, y=dispY1+4;
+
+	if( workerPtr->race_id )
+		info.disp_loyalty( x, y, x+100, workerPtr->loyalty(), workerPtr->target_loyalty(firm_recno), nation_recno, refreshFlag );
+	else
+		font_san.field( x, y, _("Loyalty"), x+100, _("N/A"), INFO_X2-2, refreshFlag );
+
+	y+=16;
+
+	String str;
+
+	str = misc.format(workerPtr->combat_level, 1);
+	font_san.field( x, y, _("Combat"), x+100, str, INFO_X2-2, refreshFlag);
+
+	y+=16;
+
+	str  = workerPtr->hit_points;
+	str += "/";
+	str += workerPtr->max_hit_points();
+
+	font_san.field( x, y, _("Hit Points"), x+100, str, INFO_X2-2, refreshFlag);
+}
+//----------- End of function FirmTurret::disp_soldier_info -----------//
 
 
 //--------- Begin of function FirmTurret::next_day ---------//

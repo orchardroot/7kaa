@@ -54,6 +54,7 @@ public:
 	virtual	void	init_crc(FirmTurretCrc *c);
 
 private:
+	void	disp_soldier_info(int dispY1, int refreshFlag);
 	short	find_target();
 	int	current_fire_delay();
 	AttackInfo*	turret_attack_info();

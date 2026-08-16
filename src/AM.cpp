@@ -116,7 +116,7 @@
 //------- define game version constant --------//
 
 	const char *GAME_VERSION_STR = SKVERSION;
-	const int GAME_VERSION = 213;	// 213: turret mod -- new firm type changes the save layout
+	const int GAME_VERSION = 214;	// 213: turret firm type; 214: turret's own 2x2 sprite
 
 //-------- System class ----------//
 

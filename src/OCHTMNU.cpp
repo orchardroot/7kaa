@@ -34,6 +34,16 @@
 #include <OINFO.h>
 #include <OFONT.h>
 #include <OMUSIC.h>
+#include <OBOX.h>
+#include <OCONFIG.h>
+#include <ConfigAdv.h>
+#include <OTECHRES.h>
+#include <OGODRES.h>
+#include <OWORLD.h>
+#include <OTOWN.h>
+#include <OFIRM.h>
+#include <OUNIT.h>
+#include <OSTR.h>
 #include <OCHTMNU.h>
 #include "gettext.h"
 
@@ -128,8 +138,21 @@ void CheatMenu::disp()
 
 	for( int b = 0; b < CHEAT_OPTION_COUNT; ++b, y += CHEAT_OPTION_HEIGHT )
 	{
+		String str( _(cheat_option_str[b]) );
+
+		if( b == 7 )      // immortal king toggle shows its state
+		{
+			str += ": ";
+			str += config.king_undie_flag ? _("ON") : _("OFF");
+		}
+		else if( b == 8 ) // fast build toggle shows its state
+		{
+			str += ": ";
+			str += config.fast_build ? _("ON") : _("OFF");
+		}
+
 		font_san.center_put( CHEAT_OPTION_X1, y,
-			CHEAT_OPTION_X2, y+CHEAT_OPTION_HEIGHT-1, _(cheat_option_str[b]) );
+			CHEAT_OPTION_X2, y+CHEAT_OPTION_HEIGHT-1, str );
 
 		if( !option_enabled(b+1) )
 		{
@@ -182,14 +205,89 @@ int CheatMenu::detect()
 // return whether option optionId (1-based) can currently be used
 int CheatMenu::option_enabled(int optionId)
 {
-	return 1;       // effects wired in a later commit
+	if( optionId == CHEAT_OPTION_COUNT )      // Done
+		return 1;
+
+	if( !nation_array.player_recno || remote.is_enable() )
+		return 0;
+
+	switch( optionId )
+	{
+		case 5:     // town population
+			return town_array.selected_recno != 0;
+
+		case 6:     // repair building
+			return firm_array.selected_recno != 0;
+
+		case 7:     // unit combat level
+			return unit_array.selected_recno != 0;
+
+		default:
+			return 1;
+	}
 }
 
 
-// apply option optionId (1-based)
+// apply option optionId (1-based); guards mirror Sys::detect_cheat_key
 void CheatMenu::apply_option(int optionId)
 {
-	// effects wired in a later commit
+	if( !option_enabled(optionId) )
+		return;
+
+	switch( optionId )
+	{
+		case 1:     // add cash
+			(~nation_array)->add_cheat((float)1000);
+			break;
+
+		case 2:     // add food
+			(~nation_array)->add_food((float)1000);
+			break;
+
+		case 3:     // all technology & gods
+			tech_res.inc_all_tech_level(nation_array.player_recno);
+			god_res.enable_know_all(nation_array.player_recno);
+			box.msg( _("Your technology has advanced.\nYou can now invoke all Greater Beings.") );
+			break;
+
+		case 4:     // reveal map
+			world.unveil(0, 0, MAX_WORLD_X_LOC-1, MAX_WORLD_Y_LOC-1);
+			world.visit(0, 0, MAX_WORLD_X_LOC-1, MAX_WORLD_Y_LOC-1, 0, 0);
+			break;
+
+		case 5:     // increase town population
+		{
+			Town* townPtr = town_array[town_array.selected_recno];
+			int num = misc.random(config_adv.race_random_list_max);
+			townPtr->init_pop( config_adv.race_random_list[num], 10, 100 );
+			townPtr->auto_set_layout();
+			break;
+		}
+
+		case 6:     // repair selected firm
+		{
+			Firm* firmPtr = firm_array[firm_array.selected_recno];
+			firmPtr->hit_points = firmPtr->max_hit_points;
+			break;
+		}
+
+		case 7:     // increase unit combat level
+		{
+			Unit* unitPtr = unit_array[unit_array.selected_recno];
+			unitPtr->set_combat_level( MIN(100, unitPtr->skill.combat_level+20) );
+			break;
+		}
+
+		case 8:     // immortal king toggle
+			config.king_undie_flag = !config.king_undie_flag;
+			break;
+
+		case 9:     // fast build toggle
+			config.fast_build = !config.fast_build;
+			break;
+	}
+
+	(~nation_array)->cheat_enabled_flag = 1;
 }
 
 

@@ -25,8 +25,17 @@
 
 #include <OINFO.h>
 #include <OBUTT3D.h>
+#include <OUNIT.h>
+#include <OBULLET.h>
+#include <ONATIONA.h>
 #include <OF_TURR.h>
-#include <OMP_CRC.h>
+
+//--------- Define combat constants ----------//
+
+enum { TURRET_RANGE = 8,               // firing range in locations
+       TURRET_SCAN_DELAY = 10,         // frames between target scans when idle
+       TURRET_MAX_GARRISON_BONUS = 4   // no. of garrisoned soldiers that speed up firing
+     };
 
 //--------- Define static vars ----------//
 
@@ -131,11 +140,52 @@ void FirmTurret::next_day()
 
 //--------- Begin of function FirmTurret::process_animation ---------//
 //
+// Called every frame. Fires an arrow at the nearest hostile unit in
+// range whenever the fire delay has elapsed.
+//
 void FirmTurret::process_animation()
 {
 	Firm::process_animation();
 
-	// firing logic is added in a later commit
+	if( under_construction || !nation_recno )
+		return;
+
+	if( fire_delay_count > 0 )
+	{
+		fire_delay_count--;
+		return;
+	}
+
+	AttackInfo* attackInfo = turret_attack_info();
+
+	if( !attackInfo )
+		return;
+
+	short targetRecno = find_target();
+
+	if( !targetRecno )
+	{
+		fire_delay_count = TURRET_SCAN_DELAY;
+		return;
+	}
+
+	if( worker_count == 0 )
+	{
+		//------ unmanned turrets fire at reduced damage ------//
+
+		static AttackInfo weakAttack;
+
+		weakAttack = *attackInfo;
+		weakAttack.attack_damage = attackInfo->attack_damage * 3 / 5;
+
+		bullet_array.add_bullet(this, unit_array[targetRecno], &weakAttack);
+	}
+	else
+	{
+		bullet_array.add_bullet(this, unit_array[targetRecno], attackInfo);
+	}
+
+	fire_delay_count = current_fire_delay();
 }
 //----------- End of function FirmTurret::process_animation -----------//
 
@@ -146,29 +196,105 @@ void FirmTurret::process_animation()
 //
 short FirmTurret::find_target()
 {
-	return 0;      // implemented in a later commit
+	int	bestDist  = TURRET_RANGE+1;
+	short	bestRecno = 0;
+
+	for( short i=1 ; i<=unit_array.size() ; i++ )
+	{
+		if( unit_array.is_deleted(i) )
+			continue;
+
+		Unit* unitPtr = unit_array[i];
+
+		if( !unitPtr->is_visible() )
+			continue;
+
+		if( !nation_array.should_attack(nation_recno, unitPtr->nation_recno) )
+			continue;
+
+		int dist = misc.points_distance( center_x, center_y,
+						unitPtr->next_x_loc(), unitPtr->next_y_loc() );
+
+		if( dist < bestDist )
+		{
+			bestDist  = dist;
+			bestRecno = i;
+		}
+	}
+
+	return bestRecno;
 }
 //----------- End of function FirmTurret::find_target -----------//
 
 
 //--------- Begin of function FirmTurret::current_fire_delay ---------//
 //
-// return: no. of frames between shots, given the current garrison
+// return: no. of frames between shots, given the current garrison.
+//
+// Unmanned, the turret fires at a third of the archer's rate. Each
+// garrisoned soldier speeds it up -- ranged soldiers twice as much --
+// down to the archer's own rate at a full garrison.
 //
 int FirmTurret::current_fire_delay()
 {
-	return 0;      // implemented in a later commit
+	AttackInfo* attackInfo = turret_attack_info();
+
+	int baseDelay = attackInfo ? attackInfo->attack_delay : 30;
+
+	int bonus = 0;
+
+	for( int i=0 ; i<worker_count && i<TURRET_MAX_GARRISON_BONUS ; i++ )
+	{
+		if( worker_array[i].max_attack_range() > 1 )
+			bonus += baseDelay/2;      // ranged soldiers help twice as much
+		else
+			bonus += baseDelay/4;
+	}
+
+	return MAX( baseDelay, baseDelay*3 - bonus );
 }
 //----------- End of function FirmTurret::current_fire_delay -----------//
 
 
 //--------- Begin of function FirmTurret::turret_attack_info ---------//
 //
-// return: the AttackInfo whose ballistic data the turret fires with
+// return: the AttackInfo whose ballistic data the turret fires with --
+//         the Norman soldier's ranged attack, or failing that the first
+//         ranged attack with a projectile sprite in the database.
 //
 AttackInfo* FirmTurret::turret_attack_info()
 {
-	return NULL;   // implemented in a later commit
+	static AttackInfo* cachedAttackInfo = NULL;
+
+	if( cachedAttackInfo )
+		return cachedAttackInfo;
+
+	UnitInfo*   unitInfo   = unit_res[UNIT_NORMAN];
+	AttackInfo* attackInfo = unit_res.get_attack_info(unitInfo->first_attack);
+
+	for( int i=0 ; i<unitInfo->attack_count ; i++, attackInfo++ )
+	{
+		if( attackInfo->attack_range > 1 && attackInfo->bullet_sprite_id )
+		{
+			cachedAttackInfo = attackInfo;
+			return cachedAttackInfo;
+		}
+	}
+
+	//----- fallback: any ranged attack with a projectile sprite -----//
+
+	attackInfo = unit_res.attack_info_array;
+
+	for( int i=0 ; i<unit_res.attack_info_count ; i++, attackInfo++ )
+	{
+		if( attackInfo->attack_range >= 6 && attackInfo->bullet_sprite_id )
+		{
+			cachedAttackInfo = attackInfo;
+			return cachedAttackInfo;
+		}
+	}
+
+	return NULL;
 }
 //----------- End of function FirmTurret::turret_attack_info -----------//
 

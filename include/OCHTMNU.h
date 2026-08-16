@@ -18,36 +18,35 @@
  *
  */
 
-// Filename    : OINGMENU.H
-// Description : in-game menu (async version)
+// Filename    : OCHTMNU.H
+// Description : in-game cheats menu
 
+#ifndef __OCHTMNU_H
+#define __OCHTMNU_H
 
-#ifndef __OINGMENU_H
-#define __OINGMENU_H
-
-class InGameMenu
+class CheatMenu
 {
 public:
-	enum { GAME_OPTION_COUNT = 8 };
+	enum { CHEAT_OPTION_COUNT = 10 };      // 9 cheats + Done
 
 	int	active_flag;
 	int	refresh_flag;
 
-	char game_menu_option_flag[GAME_OPTION_COUNT];
-	char cheat_option_flag;
-	static unsigned menu_hot_key[GAME_OPTION_COUNT];
-
 public:
-	InGameMenu();
+	CheatMenu();
 
 	int	is_active()		{ return active_flag; }
-	void	enter(char untilExitFlag);
-	void	disp(int needRepaint=0);
+	void	enter();
+	void	disp();
 	int	detect();
-	void	exit(int action);
+	void	exit();
 	void	abort();
+
+private:
+	int	option_enabled(int optionId);
+	void	apply_option(int optionId);
 };
 
-extern InGameMenu in_game_menu;
+extern CheatMenu cheat_menu;
 
 #endif

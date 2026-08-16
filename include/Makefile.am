@@ -23,6 +23,7 @@ noinst_HEADERS = \
 	OB_FLAME.h \
 	OB_HOMIN.h \
 	OB_PROJ.h \
+	OCHTMNU.h \
 	OCOLTBL.h \
 	OCONFIG.h \
 	OCRC_STO.h \

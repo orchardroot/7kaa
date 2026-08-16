@@ -36,6 +36,7 @@
 #include <OWORLDMT.h>
 #include <OGAME.h>
 #include <OOPTMENU.h>
+#include <OCHTMNU.h>
 #include <OINGMENU.h>
 #include <OFONT.h>
 #include <OMUSIC.h>
@@ -55,10 +56,15 @@ enum { GAME_OPTION_WIDTH  = 170,
 enum { GAME_OPTION_X1 = GAME_MENU_X1+90,
        GAME_OPTION_Y1 = GAME_MENU_Y1+93  };
 
+enum { CHEAT_ROW_X1 = GAME_MENU_X1 + 18,
+       CHEAT_ROW_Y1 = GAME_MENU_Y1 + 365,
+       CHEAT_ROW_X2 = GAME_MENU_X1 + 330,
+       CHEAT_ROW_Y2 = GAME_MENU_Y1 + 381 };
+
 enum { MAP_ID_X1 = GAME_MENU_X1 + 18,
-       MAP_ID_Y1 = GAME_MENU_Y1 + 362,
+       MAP_ID_Y1 = GAME_MENU_Y1 + 382,
        MAP_ID_X2 = GAME_MENU_X1 + 330,
-       MAP_ID_Y2 = GAME_MENU_Y1 + 382 };
+       MAP_ID_Y2 = GAME_MENU_Y1 + 398 };
 
 unsigned InGameMenu::menu_hot_key[GAME_OPTION_COUNT] = {'o','s','l', 0,0,0,0,KEY_ESC };
 
@@ -92,6 +98,10 @@ void InGameMenu::enter(char untilExitFlag)
       game_menu_option_flag[3] = 0;    // disable training
       game_menu_option_flag[4] = 0;    // disable retire
    }
+
+   // cheats are single-player only, and need a player kingdom
+   cheat_option_flag = nation_array.player_recno &&
+      !remote.is_enable() && !remote.is_replay();
 
    mouse_cursor.set_icon(CURSOR_NORMAL);
 
@@ -156,6 +166,12 @@ void InGameMenu::disp(int needRepaint)
          }
       }
 
+      if( cheat_option_flag )
+      {
+         font_bible.center_put( CHEAT_ROW_X1, CHEAT_ROW_Y1,
+            CHEAT_ROW_X2, CHEAT_ROW_Y2, _("Cheats") );
+      }
+
       String str(_("Map I.D."));
 
       str += ": ";
@@ -173,6 +189,17 @@ int InGameMenu::detect()
 {
    if( !active_flag )
       return 0;
+
+   //------- the extra Cheats text row -------//
+
+   if( cheat_option_flag &&
+      (mouse.key_code == 'c' ||
+       mouse.single_click( CHEAT_ROW_X1, CHEAT_ROW_Y1, CHEAT_ROW_X2, CHEAT_ROW_Y2 )) )
+   {
+      exit(0);
+      cheat_menu.enter();
+      return 1;
+   }
 
    int i, y=GAME_OPTION_Y1, x2, y2;
 

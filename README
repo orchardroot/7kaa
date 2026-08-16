@@ -1,20 +1,56 @@
-Fork modifications (orchardroot/7kaa)
+Seven Kingdoms: Modified (orchardroot/7kaa)
 -----------------------------------
-This fork of Seven Kingdoms 2.15.6 adds two features:
+An actively developed mod fork of Seven Kingdoms: Ancient Adversaries,
+based on release 2.15.6 (upstream: the3dfxdude/7kaa). New features land
+on the `mod-base` branch; each larger feature is developed on a
+`feature/*` branch and merged in.
 
-* Cheats menu: the in-game menu (F10) has a new "Cheats" row (hotkey C)
-  in single-player games. It opens a panel offering the classic cheat
-  effects (gold, food, tech, reveal map, etc.) without the magic
-  keystring. Using any of them still flags the game as "(Cheated)".
-* Turret: a new defensive building (300 gold, hotkey U in the build
-  menu). It automatically fires arrows at hostile units within 8 tiles:
-  slowly when empty, faster as up to 4 soldiers are garrisoned (archers
-  count double). Reuses the Fort's graphics for now.
+Features so far
+---------
+* Turret -- a new defensive building (300 gold, 150 HP, hotkey U in the
+  build menu, buildable by every civilization from the start). It fires
+  arrows automatically at hostile units within 8 tiles: slowly when
+  unmanned, faster as up to 4 soldiers are garrisoned (ranged soldiers
+  count double). Implemented by completing the engine's stubbed
+  firm-fired-projectile path. Reuses the Fort's graphics for now.
+* Cheats menu -- a "Cheats" entry on the in-game menu (F10, hotkey C,
+  single-player only) with the classic cheat effects: gold, food, all
+  technology and gods, reveal map, town population, repairs, combat
+  levels, immortal king and fast build. No more magic keystring, though
+  it still works. Using any cheat still marks the score "(Cheated)".
+* Rebuilt in-game menu -- the F10 menu is now drawn with real widget
+  buttons instead of a baked bitmap: press animations, reliable
+  hit-testing, translatable labels, and "Quit to OS" instead of
+  "Quit to Windows".
 
-Save games use version 213: saves from the unmodified game cannot be
-loaded, and vice versa. Multiplayer with vanilla clients is not
-compatible. tools/add_turret_data.pl documents the data-file changes;
-tools/smoke.sh is a quick boot test.
+Compatibility
+---------
+Save games use version 213: saves from the unmodified game are refused
+(and vice versa), because the new building type changes the save layout.
+Multiplayer with vanilla clients is not compatible.
+
+Developing
+---------
+Build (macOS): ./configure CXXFLAGS="-std=gnu++11 -O2" && make -j6
+Run from the source tree: SKDATA=data src/7kaa
+Quick boot test: tools/smoke.sh
+
+Game data lives in RES/SET archives under data/RESOURCE; the perl tools
+in tools/ (deresx/libresx, dbfdump/libdb, dbf.pm) unpack and repack
+them. Scripted, replayable data transforms document every change:
+* tools/add_turret_data.pl -- the Turret's FIRM/FBUILD records and icon
+* tools/make_turret_icon.py -- repaints the Fort icon's label to TURRET
+* tools/patch_gamemenu_os.py -- "Quit to OS" on the old menu bitmap
+  (kept for reference; the rebuilt menu no longer uses the bitmap)
+
+Note: many source files are ISO-8859 encoded -- use `grep -a`, and keep
+that encoding when editing.
+
+Ideas / roadmap
+---------
+* Teach the AI to build and garrison turrets
+* Dedicated turret artwork and encyclopedia entry
+* More menu quality-of-life (the main menu is still bitmap-based)
 
 PLEASE UPDATE YOUR LINKS
 https://sourceforge.net/projects/skfans

@@ -234,6 +234,11 @@ struct FirmMonsterCrc : FirmCrc
 	short		patrol_unit_array[MAX_SOLDIER_PER_GENERAL+1];
 };
 
+struct FirmTurretCrc : FirmCrc
+{
+	short		fire_delay_count;
+};
+
 struct FirmResearchCrc : FirmCrc
 {
 	short		tech_id;

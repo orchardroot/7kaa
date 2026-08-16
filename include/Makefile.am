@@ -56,6 +56,7 @@ noinst_HEADERS = \
 	OF_MINE.h \
 	OF_MONS.h \
 	OF_RESE.h \
+	OF_TURR.h \
 	OF_WAR.h \
 	OGAME.h \
 	OGAMESET.h \

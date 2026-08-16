@@ -1900,7 +1900,8 @@ static void visit_nation(Visitor *v, Nation *nat)
 	visit<int16_t>(v, &nat->lead_attack_camp_recno);
 }
 
-enum { NATION_RECORD_SIZE = 2202 };
+// 2202 in the base game; +2 for FIRM_TURRET's slot in firm_should_close_array
+enum { NATION_RECORD_SIZE = 2204 };
 
 //--------- Begin of function Nation::write_file ---------//
 //

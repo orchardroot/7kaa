@@ -230,6 +230,10 @@ int FirmArray::create_firm(int firmId)
 			firmPtr = new FirmMonster;
 			break;
 
+		case FIRM_TURRET:
+			firmPtr = new FirmTurret;
+			break;
+
 		default:
 			err_now("FirmArray::create_firm()");
 	}
@@ -284,6 +288,9 @@ int FirmArray::firm_class_size(int id)
 
 		case FIRM_MONSTER:
 			return sizeof(FirmMonster);
+
+		case FIRM_TURRET:
+			return sizeof(FirmTurret);
 
 		default:
 			err_now( "FirmArray::firm_class_size" );

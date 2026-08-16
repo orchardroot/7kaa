@@ -41,6 +41,7 @@
 #include <OF_WAR.h>
 #include <OF_HARB.h>
 #include <OF_MONS.h>
+#include <OF_TURR.h>
 #include <OTOWN.h>
 #include <ONATIONB.h>
 #include <OBULLET.h>
@@ -80,6 +81,7 @@ static union
 	char	firm_war[sizeof(FirmWarCrc)];
 	char	firm_harbor[sizeof(FirmHarborCrc)];
 	char	firm_monster[sizeof(FirmMonsterCrc)];
+	char	firm_turret[sizeof(FirmTurretCrc)];
 	char	town[sizeof(Town)];
 	char	nation[sizeof(NationBase)];
 	char	bullet[sizeof(BulletCrc)];
@@ -1209,6 +1211,36 @@ void FirmMonster::init_crc(FirmMonsterCrc *c)
 	RTRIM_ARRAY(c->patrol_unit_array, patrol_unit_count);
 }
 //----------- End of function FirmMonster::init_crc -----------//
+
+
+//--------- Begin of function FirmTurret::crc8 -----------//
+uint8_t FirmTurret::crc8()
+{
+	FirmTurretCrc &dummyFirmTurret = *(FirmTurretCrc *)temp_obj.firm_turret;
+	init_crc(&dummyFirmTurret);
+
+	uint8_t c = ::crc8((uint8_t*)&dummyFirmTurret, sizeof(FirmTurretCrc));
+	return c;
+}
+//----------- End of function FirmTurret::crc8 -----------//
+
+
+//--------- Begin of function FirmTurret::clear_ptr -----------//
+void FirmTurret::clear_ptr()
+{
+	Firm::clear_ptr();
+}
+//----------- End of function FirmTurret::clear_ptr -----------//
+
+
+//--------- Begin of function FirmTurret::init_crc -----------//
+void FirmTurret::init_crc(FirmTurretCrc *c)
+{
+	Firm::init_crc((FirmCrc*)c);
+
+	c->fire_delay_count = fire_delay_count;
+}
+//----------- End of function FirmTurret::init_crc -----------//
 
 
 //----------- End of function Town::crc8 -----------//

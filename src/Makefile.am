@@ -45,6 +45,7 @@ bin_PROGRAMS = 7kaa
 	OB_FLAME.cpp \
 	OB_HOMIN.cpp \
 	OB_PROJ.cpp \
+	OCHTMNU.cpp \
 	OCOLTBL.cpp \
 	OCONFIG.cpp \
 	OCRC_STO.cpp \

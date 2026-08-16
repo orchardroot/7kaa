@@ -1,3 +1,21 @@
+Fork modifications (orchardroot/7kaa)
+-----------------------------------
+This fork of Seven Kingdoms 2.15.6 adds two features:
+
+* Cheats menu: the in-game menu (F10) has a new "Cheats" row (hotkey C)
+  in single-player games. It opens a panel offering the classic cheat
+  effects (gold, food, tech, reveal map, etc.) without the magic
+  keystring. Using any of them still flags the game as "(Cheated)".
+* Turret: a new defensive building (300 gold, hotkey U in the build
+  menu). It automatically fires arrows at hostile units within 8 tiles:
+  slowly when empty, faster as up to 4 soldiers are garrisoned (archers
+  count double). Reuses the Fort's graphics for now.
+
+Save games use version 213: saves from the unmodified game cannot be
+loaded, and vice versa. Multiplayer with vanilla clients is not
+compatible. tools/add_turret_data.pl documents the data-file changes;
+tools/smoke.sh is a quick boot test.
+
 PLEASE UPDATE YOUR LINKS
 https://sourceforge.net/projects/skfans
 

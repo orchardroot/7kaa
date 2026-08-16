@@ -327,7 +327,7 @@ public:
 	virtual int  detect_info()			{return 0;}
 			  void sort_worker();
 
-	 		  void process_animation();
+	 		  virtual void process_animation();
 			  void process_construction();
            void process_repair();
 

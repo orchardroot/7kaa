@@ -89,6 +89,7 @@ bin_PROGRAMS = 7kaa
 	OF_MONS.cpp \
 	OF_RESE.cpp \
 	OF_RESE2.cpp \
+	OF_TURR.cpp \
 	OF_WAR.cpp \
 	OF_WAR2.cpp \
 	OGAMCRED.cpp \

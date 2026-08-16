@@ -146,6 +146,7 @@ void Mouse::init_key()
 	bind_key(KEYEVENT_BUILD_MINE, "R");
 	bind_key(KEYEVENT_BUILD_RESEARCH, "T");
 	bind_key(KEYEVENT_BUILD_WAR_FACTORY, "W");
+	bind_key(KEYEVENT_BUILD_TURRET, "U");
 
 	bind_key(KEYEVENT_MAP_MODE_CYCLE, "E");
 #else
@@ -1124,23 +1125,23 @@ int Mouse::is_key(unsigned scanCode, unsigned short skeyState, unsigned short ch
 #if(defined(FRENCH)||defined(SPANISH))
 	case SDLK_2: priChar = capitalChar = '2'; shiftChar = '\"'; altChar = '@'; break;
 #elif(defined(GERMAN))
-	case SDLK_2: priChar = capitalChar = '2'; shiftChar = '\"'; altChar = (UCHAR)'²'; break;
+	case SDLK_2: priChar = capitalChar = '2'; shiftChar = '\"'; altChar = (UCHAR)'ï¿½'; break;
 #else
 	case SDLK_2: priChar = capitalChar = '2'; shiftChar = '@'; break;
 #endif
 #if(defined(FRENCH))
-	case SDLK_3: priChar = capitalChar = '3'; shiftChar = '/'; altChar = (UCHAR)'£'; break;
+	case SDLK_3: priChar = capitalChar = '3'; shiftChar = '/'; altChar = (UCHAR)'ï¿½'; break;
 #elif(defined(SPANISH))
-	case SDLK_3: priChar = capitalChar = '3'; shiftChar = (UCHAR)'·'; altChar = '#'; break;
+	case SDLK_3: priChar = capitalChar = '3'; shiftChar = (UCHAR)'ï¿½'; altChar = '#'; break;
 #elif(defined(GERMAN))
-	case SDLK_3: priChar = capitalChar = '3'; shiftChar = (UCHAR)'§'; altChar = (UCHAR)'³'; break;
+	case SDLK_3: priChar = capitalChar = '3'; shiftChar = (UCHAR)'ï¿½'; altChar = (UCHAR)'ï¿½'; break;
 #else
 	case SDLK_3: priChar = capitalChar = '3'; shiftChar = '#'; break;
 #endif
 	case SDLK_4: priChar = capitalChar = '4'; shiftChar = '$'; break;
 	case SDLK_5: priChar = capitalChar = '5'; shiftChar = '%'; break;
 #if(defined(FRENCH))
-	case SDLK_6: priChar = capitalChar = '6'; shiftChar = '?'; altChar = (UCHAR)'¬';break;
+	case SDLK_6: priChar = capitalChar = '6'; shiftChar = '?'; altChar = (UCHAR)'ï¿½';break;
 #elif(defined(SPANISH))
 	case SDLK_6: priChar = capitalChar = '6'; shiftChar = '&'; break;
 #elif(defined(GERMAN))
@@ -1153,15 +1154,15 @@ int Mouse::is_key(unsigned scanCode, unsigned short skeyState, unsigned short ch
 	case SDLK_8: priChar = capitalChar = '8'; shiftChar = '('; altChar = '['; break;
 	case SDLK_9: priChar = capitalChar = '9'; shiftChar = ')'; altChar = ']'; break;
 	case SDLK_0: priChar = capitalChar = '0'; shiftChar = '='; altChar = '}'; break;
-	case 0x0c:  priChar = capitalChar = (UCHAR)'ß'; shiftChar = '\?'; altChar = '\\'; break;
-	case 0x0d:  priChar = capitalChar = (UCHAR)'´'; shiftChar = (UCHAR)'`'; break;
+	case 0x0c:  priChar = capitalChar = (UCHAR)'ï¿½'; shiftChar = '\?'; altChar = '\\'; break;
+	case 0x0d:  priChar = capitalChar = (UCHAR)'ï¿½'; shiftChar = (UCHAR)'`'; break;
 #elif(defined(SPANISH))
 	case SDLK_7: priChar = capitalChar = '7'; shiftChar = '/'; break;
 	case SDLK_8: priChar = capitalChar = '8'; shiftChar = '('; break;
 	case SDLK_9: priChar = capitalChar = '9'; shiftChar = ')'; break;
 	case SDLK_0: priChar = capitalChar = '0'; shiftChar = '='; break;
 	case 0x0c:  priChar = capitalChar = '\''; shiftChar = '?'; break;
-	case 0x0d:  priChar = capitalChar = (UCHAR)'¡'; shiftChar = (UCHAR)'¿'; break;
+	case 0x0d:  priChar = capitalChar = (UCHAR)'ï¿½'; shiftChar = (UCHAR)'ï¿½'; break;
 #else
 	case SDLK_7: priChar = capitalChar = '7'; shiftChar = '&'; break;
 	case SDLK_8: priChar = capitalChar = '8'; shiftChar = '*'; break;
@@ -1192,12 +1193,12 @@ int Mouse::is_key(unsigned scanCode, unsigned short skeyState, unsigned short ch
 	case SDLK_p: priChar = 'p'; capitalChar = shiftChar = 'P'; break;
 #if(defined(FRENCH))
 	case 0x1a:  priChar = capitalChar = shiftChar = '^'; altChar = '['; break;
-	case 0x1b:  priChar = capitalChar = (UCHAR)'¸';shiftChar = (UCHAR)'¨'; altChar = ']'; break;
+	case 0x1b:  priChar = capitalChar = (UCHAR)'ï¿½';shiftChar = (UCHAR)'ï¿½'; altChar = ']'; break;
 #elif(defined(SPANISH))
 	case 0x1a:  priChar = capitalChar = '`'; shiftChar = '^'; altChar = '['; break;
 	case 0x1b:  priChar = capitalChar = '+';shiftChar = '*'; altChar = ']'; break;
 #elif(defined(GERMAN))
-	case 0x1a:  priChar = (UCHAR)'ü'; capitalChar = shiftChar = (UCHAR)'Ü'; break;
+	case 0x1a:  priChar = (UCHAR)'ï¿½'; capitalChar = shiftChar = (UCHAR)'ï¿½'; break;
 	case 0x1b:  priChar = capitalChar = shiftChar = '+'; altChar = '~'; break;
 #else
 	case SDLK_LEFTBRACKET: priChar = capitalChar = '['; shiftChar = '{'; break;
@@ -1221,14 +1222,14 @@ int Mouse::is_key(unsigned scanCode, unsigned short skeyState, unsigned short ch
 	case 0x29:  priChar = capitalChar = '#'; shiftChar = '|'; altChar = '\\'; break;
 	case 0x2b:  priChar = capitalChar = '<'; shiftChar = '>'; altChar = '}'; break;
 #elif(defined(SPANISH))
-	case 0x27:  priChar = (UCHAR)'ñ'; capitalChar = shiftChar = (UCHAR)'Ñ'; break;
-	case 0x28:  priChar = capitalChar = (UCHAR)'´'; shiftChar = (UCHAR)'¨'; altChar = '{'; break;
-	case 0x29:  priChar = capitalChar = (UCHAR)'º'; shiftChar = (UCHAR)'ª'; altChar = '\\'; break;
-	case 0x2b:  priChar = (UCHAR)'ç'; capitalChar = shiftChar = (UCHAR)'Ç'; altChar = '}'; break;
+	case 0x27:  priChar = (UCHAR)'ï¿½'; capitalChar = shiftChar = (UCHAR)'ï¿½'; break;
+	case 0x28:  priChar = capitalChar = (UCHAR)'ï¿½'; shiftChar = (UCHAR)'ï¿½'; altChar = '{'; break;
+	case 0x29:  priChar = capitalChar = (UCHAR)'ï¿½'; shiftChar = (UCHAR)'ï¿½'; altChar = '\\'; break;
+	case 0x2b:  priChar = (UCHAR)'ï¿½'; capitalChar = shiftChar = (UCHAR)'ï¿½'; altChar = '}'; break;
 #elif(defined(GERMAN))
-	case 0x27:  priChar = (UCHAR)'ö'; capitalChar = shiftChar = (UCHAR)'Ö'; break;
-	case 0x28:  priChar = (UCHAR)'ä'; capitalChar = shiftChar = (UCHAR)'Ä'; break;
-	case 0x29:  priChar = capitalChar = '^'; shiftChar = (UCHAR)'°'; break;
+	case 0x27:  priChar = (UCHAR)'ï¿½'; capitalChar = shiftChar = (UCHAR)'ï¿½'; break;
+	case 0x28:  priChar = (UCHAR)'ï¿½'; capitalChar = shiftChar = (UCHAR)'ï¿½'; break;
+	case 0x29:  priChar = capitalChar = '^'; shiftChar = (UCHAR)'ï¿½'; break;
 	case 0x2b:  priChar = capitalChar = '#'; shiftChar = '\''; break;
 #else
 	case SDLK_SEMICOLON: priChar = capitalChar = ';'; shiftChar = ':'; break;
@@ -1247,14 +1248,14 @@ int Mouse::is_key(unsigned scanCode, unsigned short skeyState, unsigned short ch
 	case SDLK_b: priChar = 'b'; capitalChar = shiftChar = 'B'; break;
 	case SDLK_n: priChar = 'n'; capitalChar = shiftChar = 'N'; break;
 #if(defined(GERMAN))
-	case SDLK_m: priChar = 'm'; capitalChar = shiftChar = 'M'; altChar = (UCHAR)'µ'; break;
+	case SDLK_m: priChar = 'm'; capitalChar = shiftChar = 'M'; altChar = (UCHAR)'ï¿½'; break;
 #else
 	case SDLK_m: priChar = 'm'; capitalChar = shiftChar = 'M'; break;
 #endif
 #if(defined(FRENCH))
-	case SDLK_COMMA: priChar = capitalChar = ','; shiftChar = '\''; altChar = (UCHAR)'¯'; break;
-	case SDLK_PERIOD: priChar = capitalChar = '.'; shiftChar = '\"'; altChar = (UCHAR)'­'; break;
-	case 0x35:  priChar = (UCHAR)'é'; capitalChar = shiftChar = (UCHAR)'É'; altChar = (UCHAR)'´'; break;
+	case SDLK_COMMA: priChar = capitalChar = ','; shiftChar = '\''; altChar = (UCHAR)'ï¿½'; break;
+	case SDLK_PERIOD: priChar = capitalChar = '.'; shiftChar = '\"'; altChar = (UCHAR)'ï¿½'; break;
+	case 0x35:  priChar = (UCHAR)'ï¿½'; capitalChar = shiftChar = (UCHAR)'ï¿½'; altChar = (UCHAR)'ï¿½'; break;
 #elif(defined(SPANISH))
 	case SDLK_COMMA: priChar = capitalChar = ','; shiftChar = ';'; break;
 	case SDLK_PERIOD: priChar = capitalChar = '.'; shiftChar = ':'; break;

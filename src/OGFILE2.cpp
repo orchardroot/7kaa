@@ -203,6 +203,11 @@ int GameFile::read_file(File* filePtr)
 	if(load_file_game_version > GAME_VERSION)
 		return -1;		// the executing program can't handle saved game in future version
 
+	// the turret mod changed the save layout (new firm type, wider nation
+	// record), so saves from before version 213 cannot be read at all
+	if(load_file_game_version < GAME_VERSION)
+		return -1;
+
 	read_file_same_version = ( load_file_game_version/100==GAME_VERSION/100 );
 
 	//------------------------------------------------//

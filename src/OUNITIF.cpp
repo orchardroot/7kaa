@@ -105,6 +105,7 @@ static short build_firm_button_order[MAX_FIRM_TYPE] =
 	FIRM_HARBOR,
 	FIRM_BASE,
 	FIRM_MONSTER,
+	FIRM_TURRET,
 };
 // ##### end Gilbert 3/10 #######//
 
@@ -120,6 +121,7 @@ static KeyEventType button_build_hotkey[MAX_FIRM_TYPE] =
 	KEYEVENT_BUILD_HARBOR,
 	KEYEVENT_BUILD_BASE,
 	KEYEVENT_BUILD_MONSTER,
+	KEYEVENT_BUILD_TURRET,
 };
 
 
@@ -1016,6 +1018,7 @@ const char *select_where_to_build[MAX_FIRM_TYPE] =
 	N_("Please select a location to build the War Factory."),
 	N_("Please select a location to build the Harbor."),
 	("Please select a location to build the Fryhtan Lair."),
+	N_("Please select a location to build the Turret."),
 };
 //--------- Begin of function Unit::disp_build ---------//
 //

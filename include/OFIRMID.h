@@ -26,7 +26,7 @@
 
 //--------- Define no. of firms ------------//
 
-enum { MAX_FIRM_TYPE = 10 };
+enum { MAX_FIRM_TYPE = 11 };
 
 //--- Define the firm id no. according to the order in FIRM.DBF ---//
 
@@ -40,6 +40,7 @@ enum { FIRM_BASE=1,
 		 FIRM_WAR_FACTORY,
 		 FIRM_HARBOR,
 		 FIRM_MONSTER,
+		 FIRM_TURRET,
 	  };
 
 //------------------------------------------//

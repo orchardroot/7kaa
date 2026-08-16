@@ -34,6 +34,7 @@ public:
 	int	refresh_flag;
 
 	char game_menu_option_flag[GAME_OPTION_COUNT];
+	char cheat_option_flag;
 	static unsigned menu_hot_key[GAME_OPTION_COUNT];
 
 public:

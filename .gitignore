@@ -100,3 +100,4 @@ tools/bmpicn
 tools/genfont
 tools/icnpack
 scratch/
+__pycache__/

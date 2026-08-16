@@ -38,6 +38,8 @@
 #include <OOPTMENU.h>
 #include <OCHTMNU.h>
 #include <OINGMENU.h>
+#include <OBUTTON.h>
+#include <vga_util.h>
 #include <OFONT.h>
 #include <OMUSIC.h>
 #include "gettext.h"
@@ -50,23 +52,34 @@ enum { GAME_MENU_WIDTH  = 350,
 enum { GAME_MENU_X1 = ZOOM_X1 + ( (ZOOM_X2-ZOOM_X1+1) - GAME_MENU_WIDTH ) / 2,
        GAME_MENU_Y1 = ZOOM_Y1 + ( (ZOOM_Y2-ZOOM_Y1+1) - GAME_MENU_HEIGHT ) / 2 };
 
-enum { GAME_OPTION_WIDTH  = 170,
-       GAME_OPTION_HEIGHT = 34   };
+enum { GAME_OPTION_HEIGHT = 24,
+       GAME_OPTION_STRIDE = 30   };
 
-enum { GAME_OPTION_X1 = GAME_MENU_X1+90,
-       GAME_OPTION_Y1 = GAME_MENU_Y1+93  };
-
-enum { CHEAT_ROW_X1 = GAME_MENU_X1 + 18,
-       CHEAT_ROW_Y1 = GAME_MENU_Y1 + 365,
-       CHEAT_ROW_X2 = GAME_MENU_X1 + 330,
-       CHEAT_ROW_Y2 = GAME_MENU_Y1 + 381 };
+enum { GAME_OPTION_X1 = GAME_MENU_X1+40,
+       GAME_OPTION_Y1 = GAME_MENU_Y1+64,
+       GAME_OPTION_X2 = GAME_MENU_X1+GAME_MENU_WIDTH-41 };
 
 enum { MAP_ID_X1 = GAME_MENU_X1 + 18,
-       MAP_ID_Y1 = GAME_MENU_Y1 + 382,
+       MAP_ID_Y1 = GAME_MENU_Y1 + 368,
        MAP_ID_X2 = GAME_MENU_X1 + 330,
-       MAP_ID_Y2 = GAME_MENU_Y1 + 398 };
+       MAP_ID_Y2 = GAME_MENU_Y1 + 384 };
 
-unsigned InGameMenu::menu_hot_key[GAME_OPTION_COUNT] = {'o','s','l', 0,0,0,0,KEY_ESC };
+unsigned InGameMenu::menu_hot_key[GAME_OPTION_COUNT] = {'o','s','l', 0,0,'c',0,0,KEY_ESC };
+
+static const char* game_option_str[InGameMenu::GAME_OPTION_COUNT] =
+{
+	N_("Options (O)"),
+	N_("Save Game (S)"),
+	N_("Load Game (L)"),
+	N_("Training"),
+	N_("Retire"),
+	N_("Cheats (C)"),
+	N_("Quit to Main Menu"),
+	N_("Quit to OS"),
+	N_("Continue Game"),
+};
+
+static Button game_menu_button_array[InGameMenu::GAME_OPTION_COUNT];
 
 InGameMenu::InGameMenu()
 {
@@ -89,6 +102,7 @@ void InGameMenu::enter(char untilExitFlag)
       // when in observe mode
       game_menu_option_flag[1] = 0;    // disable save game
       game_menu_option_flag[4] = 0;    // disable retire
+      game_menu_option_flag[5] = 0;    // disable cheats
    }
 
    if( remote.is_enable() || remote.is_replay() )
@@ -97,11 +111,8 @@ void InGameMenu::enter(char untilExitFlag)
       game_menu_option_flag[2] = 0;    // disable load game
       game_menu_option_flag[3] = 0;    // disable training
       game_menu_option_flag[4] = 0;    // disable retire
+      game_menu_option_flag[5] = 0;    // disable cheats
    }
-
-   // cheats are single-player only, and need a player kingdom
-   cheat_option_flag = nation_array.player_recno &&
-      !remote.is_enable() && !remote.is_replay();
 
    mouse_cursor.set_icon(CURSOR_NORMAL);
 
@@ -146,31 +157,42 @@ void InGameMenu::disp(int needRepaint)
 
    if( refresh_flag )
    {
-      int x=GAME_MENU_X1+20, y=GAME_MENU_Y1+17;
+      //--- opaque panel so nothing shows through from the game view ---//
 
-      if( Vga::use_back_buf )
-         image_interface.put_back( GAME_MENU_X1, GAME_MENU_Y1, "GAMEMENU" );
-      else
-         image_interface.put_front( GAME_MENU_X1, GAME_MENU_Y1, "GAMEMENU" );
+      char oldOpaqueFlag = Vga::opaque_flag;
+      Vga::opaque_flag = 1;
 
+      vga_util.d3_panel_up( GAME_MENU_X1, GAME_MENU_Y1,
+         GAME_MENU_X1+GAME_MENU_WIDTH-1, GAME_MENU_Y1+GAME_MENU_HEIGHT-1,
+         !Vga::use_back_buf );
 
-      for( int b = 0; b < GAME_OPTION_COUNT; ++b)
+      Vga::opaque_flag = oldOpaqueFlag;
+
+      //--------- title and separator line ---------//
+
+      font_bible.center_put( GAME_MENU_X1, GAME_MENU_Y1+14,
+         GAME_MENU_X1+GAME_MENU_WIDTH-1, GAME_MENU_Y1+44, _("Game Menu") );
+
+      vga_util.d3_panel_down( GAME_MENU_X1+24, GAME_MENU_Y1+50,
+         GAME_MENU_X1+GAME_MENU_WIDTH-25, GAME_MENU_Y1+52, !Vga::use_back_buf );
+
+      //--------------- option buttons ---------------//
+
+      int y = GAME_OPTION_Y1;
+
+      for( int b = 0; b < GAME_OPTION_COUNT; ++b, y += GAME_OPTION_STRIDE )
       {
-         if( !game_menu_option_flag[b])
-         {
-            // darked disabled button
-            Vga::active_buf->adjust_brightness(
-               GAME_OPTION_X1, GAME_OPTION_Y1 + b*GAME_OPTION_HEIGHT,
-               GAME_OPTION_X1+GAME_OPTION_WIDTH-1,
-               GAME_OPTION_Y1 + (b+1)*GAME_OPTION_HEIGHT-1, -8);
-         }
+         if( b == GAME_OPTION_COUNT-1 )
+            y += 8;        // set Continue Game apart
+
+         game_menu_button_array[b].paint_text( GAME_OPTION_X1, y,
+            GAME_OPTION_X2, y+GAME_OPTION_HEIGHT-1, _(game_option_str[b]) );
+
+         if( !game_menu_option_flag[b] )
+            game_menu_button_array[b].disable();
       }
 
-      if( cheat_option_flag )
-      {
-         font_bible.center_put( CHEAT_ROW_X1, CHEAT_ROW_Y1,
-            CHEAT_ROW_X2, CHEAT_ROW_Y2, _("Cheats") );
-      }
+      //------------------- map id -------------------//
 
       String str(_("Map I.D."));
 
@@ -190,51 +212,24 @@ int InGameMenu::detect()
    if( !active_flag )
       return 0;
 
-   //------- the extra Cheats text row -------//
+   //--- a right-click anywhere continues the game, like the old menu ---//
 
-   if( cheat_option_flag &&
-      (mouse.key_code == 'c' ||
-       mouse.single_click( CHEAT_ROW_X1, CHEAT_ROW_Y1, CHEAT_ROW_X2, CHEAT_ROW_Y2 )) )
+   if( mouse.any_click(1) )
    {
       exit(0);
-      cheat_menu.enter();
       return 1;
    }
 
-   int i, y=GAME_OPTION_Y1, x2, y2;
+   int i;
 
-   for( i=1 ; i<=GAME_OPTION_COUNT ; i++, y+=GAME_OPTION_HEIGHT )
+   for( i=1 ; i<=GAME_OPTION_COUNT ; i++ )
    {
-      x2 = GAME_OPTION_X1+GAME_OPTION_WIDTH-1;
-      y2 = y+GAME_OPTION_HEIGHT-1;
-
-      if( game_menu_option_flag[i-1] == 1 &&
-         (menu_hot_key[i-1] && mouse.key_code == menu_hot_key[i-1] ||
-         mouse.single_click( GAME_OPTION_X1, y, x2, y2 )) )
-         break;
-
-      if( i == GAME_OPTION_COUNT &&    // assume last option is 'continue'
-         (mouse.any_click(1) || mouse.key_code==KEY_ESC) )
+      if( game_menu_button_array[i-1].detect( menu_hot_key[i-1] ) )
          break;
    }
 
    if( i>GAME_OPTION_COUNT )
       return 0;
-
-   //------ display the pressed down button -----//
-
-   vga_front.save_area_common_buf( GAME_OPTION_X1, y, x2, y2 );
-
-   image_interface.put_front( GAME_OPTION_X1, y, "MENU-DWN" );
-
-   while( mouse.left_press )  // holding down the button
-   {
-      sys.yield();
-      vga.flip();
-      mouse.get_event();
-   }
-
-   vga_front.rest_area_common_buf();         // restore the up button
 
    //--------- run the option -------//
 
@@ -258,6 +253,10 @@ int InGameMenu::detect()
          tutor.select_run_tutor(1);
          break;
 
+      case 6:     // cheats
+         cheat_menu.enter();
+         break;
+
       case 5:     // retire
          if( nation_array.player_recno )     // only when the player's kingdom still exists
          {
@@ -275,7 +274,7 @@ int InGameMenu::detect()
          }
          break;
 
-      case 6:     // quit to main menu
+      case 7:     // quit to main menu
       {
          int boxX1;
 
@@ -300,7 +299,7 @@ int InGameMenu::detect()
          break;
       }
 
-      case 7:
+      case 8:     // quit to OS
          if( !nation_array.player_recno ||
              box.ask( _("Do you really want to quit Seven Kingdoms?"), _("Yes"), _("No"), 178, 388 ) )
          {

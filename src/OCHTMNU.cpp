@@ -34,6 +34,7 @@
 #include <OINFO.h>
 #include <OFONT.h>
 #include <OMUSIC.h>
+#include <OBUTTON.h>
 #include <OBOX.h>
 #include <OCONFIG.h>
 #include <ConfigAdv.h>
@@ -49,17 +50,20 @@
 
 CheatMenu cheat_menu;
 
+// at least as large as the in-game menu (350x400) so an opaque panel
+// fully covers it when opened from there
 enum { CHEAT_MENU_WIDTH  = 400,
-       CHEAT_MENU_HEIGHT = 336  };
+       CHEAT_MENU_HEIGHT = 420  };
 
 enum { CHEAT_MENU_X1 = ZOOM_X1 + ( (ZOOM_X2-ZOOM_X1+1) - CHEAT_MENU_WIDTH ) / 2,
        CHEAT_MENU_Y1 = ZOOM_Y1 + ( (ZOOM_Y2-ZOOM_Y1+1) - CHEAT_MENU_HEIGHT ) / 2 };
 
-enum { CHEAT_OPTION_HEIGHT = 26 };
+enum { CHEAT_ROW_HEIGHT = 24,
+       CHEAT_ROW_STRIDE = 30 };
 
-enum { CHEAT_OPTION_X1 = CHEAT_MENU_X1 + 30,
-       CHEAT_OPTION_Y1 = CHEAT_MENU_Y1 + 56,
-       CHEAT_OPTION_X2 = CHEAT_MENU_X1 + CHEAT_MENU_WIDTH - 31 };
+enum { CHEAT_OPTION_X1 = CHEAT_MENU_X1 + 48,
+       CHEAT_OPTION_Y1 = CHEAT_MENU_Y1 + 72,
+       CHEAT_OPTION_X2 = CHEAT_MENU_X1 + CHEAT_MENU_WIDTH - 49 };
 
 static const char* cheat_option_str[CheatMenu::CHEAT_OPTION_COUNT] =
 {
@@ -74,6 +78,8 @@ static const char* cheat_option_str[CheatMenu::CHEAT_OPTION_COUNT] =
 	N_("Fast Build"),
 	N_("Done"),
 };
+
+static Button cheat_button_array[CheatMenu::CHEAT_OPTION_COUNT];
 
 
 CheatMenu::CheatMenu()
@@ -128,16 +134,34 @@ void CheatMenu::disp()
 	if( !refresh_flag )
 		return;
 
+	//--- force an opaque panel: the in-game menu may still be painted
+	//--- underneath and must not show through
+
+	char oldOpaqueFlag = Vga::opaque_flag;
+	Vga::opaque_flag = 1;
+
 	vga_util.d3_panel_up( CHEAT_MENU_X1, CHEAT_MENU_Y1,
 		CHEAT_MENU_X1+CHEAT_MENU_WIDTH-1, CHEAT_MENU_Y1+CHEAT_MENU_HEIGHT-1, 1 );
 
-	font_bible.center_put( CHEAT_MENU_X1, CHEAT_MENU_Y1+14,
-		CHEAT_MENU_X1+CHEAT_MENU_WIDTH-1, CHEAT_MENU_Y1+40, _("Cheats") );
+	Vga::opaque_flag = oldOpaqueFlag;
+
+	//--------- title and separator line ---------//
+
+	font_bible.center_put( CHEAT_MENU_X1, CHEAT_MENU_Y1+20,
+		CHEAT_MENU_X1+CHEAT_MENU_WIDTH-1, CHEAT_MENU_Y1+52, _("Cheats") );
+
+	vga_util.d3_panel_down( CHEAT_MENU_X1+24, CHEAT_MENU_Y1+58,
+		CHEAT_MENU_X1+CHEAT_MENU_WIDTH-25, CHEAT_MENU_Y1+60, 1 );
+
+	//--------------- option buttons ---------------//
 
 	int y = CHEAT_OPTION_Y1;
 
-	for( int b = 0; b < CHEAT_OPTION_COUNT; ++b, y += CHEAT_OPTION_HEIGHT )
+	for( int b = 0; b < CHEAT_OPTION_COUNT; ++b, y += CHEAT_ROW_STRIDE )
 	{
+		if( b == CHEAT_OPTION_COUNT-1 )
+			y += 8;        // set Done apart from the cheats
+
 		String str( _(cheat_option_str[b]) );
 
 		if( b == 7 )      // immortal king toggle shows its state
@@ -151,16 +175,11 @@ void CheatMenu::disp()
 			str += config.fast_build ? _("ON") : _("OFF");
 		}
 
-		font_san.center_put( CHEAT_OPTION_X1, y,
-			CHEAT_OPTION_X2, y+CHEAT_OPTION_HEIGHT-1, str );
+		cheat_button_array[b].paint_text( CHEAT_OPTION_X1, y,
+			CHEAT_OPTION_X2, y+CHEAT_ROW_HEIGHT-1, str );
 
 		if( !option_enabled(b+1) )
-		{
-			// darken disabled option
-			Vga::active_buf->adjust_brightness(
-				CHEAT_OPTION_X1, y,
-				CHEAT_OPTION_X2, y+CHEAT_OPTION_HEIGHT-1, -6);
-		}
+			cheat_button_array[b].disable();
 	}
 
 	refresh_flag = 0;
@@ -172,33 +191,35 @@ int CheatMenu::detect()
 	if( !active_flag )
 		return 0;
 
-	int i, y=CHEAT_OPTION_Y1;
+	//----- ESC or a right-click anywhere closes the menu -----//
 
-	for( i=1 ; i<=CHEAT_OPTION_COUNT ; i++, y+=CHEAT_OPTION_HEIGHT )
-	{
-		if( option_enabled(i) &&
-			mouse.single_click( CHEAT_OPTION_X1, y, CHEAT_OPTION_X2, y+CHEAT_OPTION_HEIGHT-1 ) )
-			break;
-
-		if( i == CHEAT_OPTION_COUNT &&      // assume last option is 'done'
-			(mouse.any_click(1) || mouse.key_code==KEY_ESC) )
-			break;
-	}
-
-	if( i>CHEAT_OPTION_COUNT )
-		return 0;
-
-	if( i == CHEAT_OPTION_COUNT )    // Done
+	if( mouse.key_code==KEY_ESC || mouse.any_click(1) )
 	{
 		exit();
 		return 1;
 	}
 
-	apply_option(i);
+	for( int i=1 ; i<=CHEAT_OPTION_COUNT ; i++ )
+	{
+		// Button::detect uses any_click, so rapid clicking registers
+		// (single_click ignores clicks once the double-click count rises)
+		if( cheat_button_array[i-1].detect() )
+		{
+			if( i == CHEAT_OPTION_COUNT )    // Done
+			{
+				exit();
+				return 1;
+			}
 
-	refresh_flag = 1;       // toggles change their labels
+			apply_option(i);
 
-	return 1;
+			refresh_flag = 1;       // toggles change their labels
+
+			return 1;
+		}
+	}
+
+	return 0;
 }
 
 

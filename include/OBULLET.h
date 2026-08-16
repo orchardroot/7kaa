@@ -51,6 +51,10 @@ struct BulletCrc;
 class Bullet : public Sprite
 {
 public:
+	// staging area for BULLET_BY_FIRM: set by BulletArray::add_bullet(Firm*,...)
+	// immediately before init() and read only there; never serialized
+	static AttackInfo* firm_init_attack_info;
+
 	char	parent_type;
 	short	parent_recno;
 
@@ -103,7 +107,7 @@ public:
 
 	short add_bullet(Unit* parentUnit, Unit* targetUnit);		// unit attacks unit
 	short add_bullet(Unit* parentUnit, short xLoc, short yLoc);	// unit attacks firm, town
-	short add_bullet(Firm* parentFirm, Unit* targetUnit);		// firm attacks unit
+	short add_bullet(Firm* parentFirm, Unit* targetUnit, AttackInfo* attackInfo);	// firm attacks unit
 	short add_bullet(Firm* parentFirm, Firm* targetFirm);		// firm attacks firm
 
 	int	add_bullet_possible(short startXLoc, short startYLoc, char attackerMobileType,

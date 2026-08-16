@@ -30,6 +30,9 @@
 #include <OU_CART.h>
 #include <OTOWN.h>
 #include <ONATIONA.h>
+#include <OFIRMA.h>
+
+AttackInfo* Bullet::firm_init_attack_info = NULL;
 
 // -------- Define constant ---------//
 
@@ -65,9 +68,58 @@ void Bullet::init(char parentType, short parentRecno, short targetXLoc, short ta
 	parent_recno = parentRecno;
 	target_mobile_type = targetMobileType;
 
-	//**** BUGHERE, using parentType and parentRecno to allow bullet by firm, town, etc.
-	//**** BUGHERE, only allow bullet by unit for this version
-	err_when(parent_type!=BULLET_BY_UNIT);
+	err_when(parent_type!=BULLET_BY_UNIT && parent_type!=BULLET_BY_FIRM);
+
+	if( parent_type == BULLET_BY_FIRM )
+	{
+		//----- bullet emitted by a firm; ballistic data comes from the
+		//----- AttackInfo staged by BulletArray::add_bullet(Firm*,...)
+
+		AttackInfo* attackInfo = firm_init_attack_info;
+		err_when( !attackInfo );
+		firm_init_attack_info = NULL;
+
+		Firm* parentFirm = firm_array[parentRecno];
+
+		attack_damage  = attackInfo->attack_damage;
+		damage_radius  = attackInfo->bullet_radius;
+		nation_recno   = parentFirm->nation_recno;
+		fire_radius    = attackInfo->fire_radius;
+
+		sprite_id 	= attackInfo->bullet_sprite_id;
+		sprite_info = sprite_res[sprite_id];
+
+		sprite_info->load_bitmap_res();
+
+		cur_action = SPRITE_MOVE;
+		cur_frame  = 1;
+
+		origin_x = cur_x = parentFirm->center_x * ZOOM_LOC_WIDTH;
+		origin_y = cur_y = parentFirm->center_y * ZOOM_LOC_HEIGHT;
+
+		target_x_loc = targetXLoc;
+		target_y_loc = targetYLoc;
+
+		set_dir( origin_x, origin_y,
+			target_x_loc * ZOOM_LOC_WIDTH, target_y_loc * ZOOM_LOC_HEIGHT );
+
+		SpriteFrame* spriteFrame = cur_sprite_frame();
+
+		go_x = target_x_loc * ZOOM_LOC_WIDTH  + ZOOM_LOC_WIDTH/2  - spriteFrame->offset_x - spriteFrame->width/2;
+		go_y = target_y_loc * ZOOM_LOC_HEIGHT + ZOOM_LOC_HEIGHT/2 - spriteFrame->offset_y - spriteFrame->height/2;
+
+		mobile_type = UNIT_LAND;
+
+		int xStep 	= (go_x - cur_x)/attackInfo->bullet_speed;
+		int yStep 	= (go_y - cur_y)/attackInfo->bullet_speed;
+
+		total_step  = MAX(1, MAX(abs(xStep), abs(yStep)));
+		cur_step    = 0;
+
+		err_when( total_step < 0 );		// number overflow
+		return;
+	}
+
 	Unit *parentUnit = unit_array[parentRecno];
 
 	//---------- copy attack info from the parent unit --------//
@@ -262,11 +314,11 @@ void Bullet::hit_target(short x, short y)
 	Unit* targetUnit = unit_array[targetUnitRecno];
 
 	Unit* parentUnit;
-	if(unit_array.is_deleted(parent_recno))
+	if(parent_type!=BULLET_BY_UNIT || unit_array.is_deleted(parent_recno))
 	//### begin alex 26/9 ###//
 	//	parentUnit = NULL;	// parent is dead
 	{
-		parentUnit = NULL;	// parent is dead
+		parentUnit = NULL;	// parent is dead, or is not a unit
 		if(nation_array.is_deleted(nation_recno))
 			return;
 	}
@@ -359,7 +411,7 @@ void Bullet::hit_building(short x, short y)
 		return;
 
 	Unit *virtualUnit = NULL, *parentUnit;
-	if(unit_array.is_deleted(parent_recno))
+	if(parent_type!=BULLET_BY_UNIT || unit_array.is_deleted(parent_recno))
 	{
 		parentUnit = NULL;
 		//### begin alex 26/9 ###//
@@ -403,7 +455,7 @@ void Bullet::hit_wall(short x, short y)
 // ###### end Gilbert 14/5 #########//
 
 	Unit *virtualUnit, *parentUnit;
-	if(unit_array.is_deleted(parent_recno))
+	if(parent_type!=BULLET_BY_UNIT || unit_array.is_deleted(parent_recno))
 	{
 		parentUnit = NULL;
 		//### begin alex 26/9 ###//

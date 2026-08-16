@@ -457,9 +457,20 @@ short BulletArray::add_bullet(Unit* parentUnit, short xLoc, short yLoc)
 // <Unit*> targetUnit - pointer to the target Unit
 //
 //	return 1 if bullet is added successfully otherwise return 0.
-short BulletArray::add_bullet(Firm* parentFirm, Unit* targetUnit)
+short BulletArray::add_bullet(Firm* parentFirm, Unit* targetUnit, AttackInfo* attackInfo)
 {
-	return 0;
+	err_when( !parentFirm || !targetUnit || !attackInfo );
+
+	short targetXLoc = targetUnit->next_x_loc();
+	short targetYLoc = targetUnit->next_y_loc();
+
+	Bullet* bulletPtr;
+	create_bullet( attackInfo->bullet_sprite_id, &bulletPtr );
+
+	Bullet::firm_init_attack_info = attackInfo;
+	bulletPtr->init(BULLET_BY_FIRM, parentFirm->firm_recno, targetXLoc, targetYLoc, targetUnit->mobile_type);
+
+	return 1;
 }
 //----------- End of function BulletArray::add_bullet -----------//
 

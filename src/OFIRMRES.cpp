@@ -76,6 +76,7 @@ void FirmRes::init()
 	firm_res[FIRM_FACTORY]->firm_skill_id = SKILL_MFT;
 	firm_res[FIRM_RESEARCH]->firm_skill_id = SKILL_RESEARCH;
 	firm_res[FIRM_WAR_FACTORY]->firm_skill_id = SKILL_MFT;
+	firm_res[FIRM_TURRET]->firm_skill_id = SKILL_LEADING;
 
    //----------------------------------------//
 

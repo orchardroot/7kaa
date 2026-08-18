@@ -101,3 +101,4 @@ tools/genfont
 tools/icnpack
 scratch/
 __pycache__/
+build/
